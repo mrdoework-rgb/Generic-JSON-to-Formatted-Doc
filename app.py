@@ -43,13 +43,25 @@ def generate_worksheet(json_data, template_path):
             p.text = "" # Clear the anchor
             append_science_text(p, title)
             
-        # --- B. BODY CONTENT ---
-        elif "[[BODY_CONTENT_HERE]]" in p.text:
-            style_name = p.style.name
-            for text_block in body_content:
-                new_p = p.insert_paragraph_before('')
-                new_p.style = style_name
-                append_science_text(new_p, text_block)
+        # --- B. SECTIONS (Subheadings + Content) ---
+        elif "[[SECTIONS_HERE]]" in p.text:
+            sections_data = json_data.get("sections", [])
+            
+            for section in sections_data:
+                subheading_text = section.get("subheading", "").strip()
+                paragraphs_data = section.get("content", [])
+                
+                # 1. Inject Subheading (if one exists)
+                if subheading_text:
+                    new_h = p.insert_paragraph_before('')
+                    new_h.style = 'Heading 2' # Uses Word's built-in Heading 2
+                    append_science_text(new_h, subheading_text)
+                
+                # 2. Inject the Paragraphs for this section
+                for text_block in paragraphs_data:
+                    new_p = p.insert_paragraph_before('')
+                    new_p.style = 'Normal' # Uses Word's built-in Normal text
+                    append_science_text(new_p, text_block)
             
             # Delete the anchor paragraph via XML
             p._element.getparent().remove(p._element)
